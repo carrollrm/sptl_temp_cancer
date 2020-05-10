@@ -1,0 +1,46 @@
+model{
+for (i in 1:33551){	#individuals with brca
+	temp1[i]<-(log(timeF1[i]+0.01)-log(lam1[i]))/sigma1
+	log(lam1[i])<-beta1[1]+beta1[2]*x11[i]+beta1[3]*x12[i]+beta1[4]*x13[i]+beta1[5]*x14[i]+
+		beta1[6]*x15[i]+beta1[7]*x16[i]+beta1[8]*x17[i]+beta1[9]*x18[i]+
+		beta1[10]*x19[i]+beta1[11]*x110[i]+beta1[12]*x111[i]+beta1[13]*x112[i]+
+		beta1[14]*x113[i]+beta1[15]*x114[i]+beta1[16]*x115[i]+
+		u[spt1[i]]
+#logistic distn surv and density
+	s1[i]<-1/(1+exp(temp1[i]))
+	f1[i]<-exp(temp1[i])*pow(s1[i],2)
+#log like
+	L1[i]<-indic1[i]*log(f1[i]/(sigma1*(timeF1[i]+0.01)))+(1-indic1[i])*log(s1[i])
+#Poisson zeros trick
+	zeros1[i]<-0
+	new1[i]<- -L1[i]
+	zeros1[i]~dpois(new1[i])
+}#close i loop for brca
+for (i in 1:45987){	#individuals with lbca
+	temp2[i]<-(log(timeF2[i]+0.01)-log(lam2[i]))/sigma2
+	log(lam2[i])<-beta2[1]+beta2[2]*x21[i]+beta2[3]*x22[i]+beta2[4]*x23[i]+beta2[5]*x24[i]+
+		beta2[6]*x25[i]+beta2[7]*x26[i]+beta2[8]*x27[i]+beta2[9]*x28[i]+
+		beta2[10]*x29[i]+beta2[11]*x210[i]+beta2[12]*x211[i]+beta2[13]*x212[i]+
+		u[spt2[i]]
+#logistic distn surv and density
+	s2[i]<-1/(1+exp(temp2[i]))
+	f2[i]<-exp(temp2[i])*pow(s2[i],2)
+#log like
+	L2[i]<-indic2[i]*log(f2[i]/(sigma2*(timeF2[i]+0.01)))+(1-indic2[i])*log(s2[i])
+#Poisson zeros trick
+	zeros2[i]<-0
+	new2[i]<- -L2[i]
+	zeros2[i]~dpois(new2[i])
+}#close i loop  for lbca
+#model params for all
+for (j in 1:16){beta1[j]~dnorm(0,0.001)}#brca
+for (j in 1:13){beta2[j]~dnorm(0,0.001)}#lbca
+tauu<-pow(sdu,-2)
+sdu~dunif(0,10)
+sigma2~dunif(0.01,10)
+sigma1~dunif(0.01,10)
+for (j in 1:64){u[j]~dnorm(0,tauu)}#close j loop
+#deviances
+D1<-(-2)*sum(L1[])
+D2<-(-2)*sum(L2[])
+}#close model loop

@@ -1,0 +1,99 @@
+model{
+for (i in 1:33551){	#individuals with brca
+	temp1[i]<-(log(timeF1[i]+0.01)-log(lam1[i]))/sigma1
+	log(lam1[i])<-beta1[1]+beta1[2]*x11[i]+beta1[3]*x12[i]+beta1[4]*x13[i]+beta1[5]*x14[i]+
+		beta1[6]*x15[i]+beta1[7]*x16[i]+beta1[8]*x17[i]+beta1[9]*x18[i]+
+		beta1[10]*x19[i]+beta1[11]*x110[i]+beta1[12]*x111[i]+beta1[13]*x112[i]+
+		beta1[14]*x113[i]+beta1[15]*x114[i]+beta1[16]*x115[i]+
+		u[spt1[i]]+gamA1[yr1[i]]+gamB1[evnt1[i]]
+#logistic distn surv and density
+	s1[i]<-1/(1+exp(temp1[i]))
+	f1[i]<-exp(temp1[i])*pow(s1[i],2)
+#log like
+	L1[i]<-indic1[i]*log(f1[i]/(sigma1*(timeF1[i]+0.01)))+(1-indic1[i])*log(s1[i])
+#Poisson zeros trick
+	zeros1[i]<-0
+	new1[i]<- -L1[i]
+	zeros1[i]~dpois(new1[i])
+}#close i loop for brca
+for (i in 1:30892){	#individuals with crca
+	temp2[i]<-(log(timeF2[i]+0.01)-log(lam2[i]))/sigma2
+	log(lam2[i])<-beta2[1]+beta2[2]*x21[i]+beta2[3]*x22[i]+beta2[4]*x23[i]+beta2[5]*x24[i]+
+		beta2[6]*x25[i]+beta2[7]*x26[i]+beta2[8]*x27[i]+beta2[9]*x28[i]+
+		beta2[10]*x29[i]+beta2[11]*x210[i]+beta2[12]*x211[i]+beta2[13]*x212[i]+
+		beta2[14]*x213[i]+
+		u[spt2[i]]+gamA2[yr2[i]]+gamB1[evnt2[i]]#share gamB1 with brca
+#logistic distn surv and density
+	s2[i]<-1/(1+exp(temp2[i]))
+	f2[i]<-exp(temp2[i])*pow(s2[i],2)
+#log like
+	L2[i]<-indic2[i]*log(f2[i]/(sigma2*(timeF2[i]+0.01)))+(1-indic2[i])*log(s2[i])
+#Poisson zeros trick
+	zeros2[i]<-0
+	new2[i]<- -L2[i]
+	zeros2[i]~dpois(new2[i])
+}#close i loop  for crca
+for (i in 1:46527){	#individuals with prca
+	temp3[i]<-(log(timeF3[i]+0.01)-log(lam3[i]))/sigma3
+	log(lam3[i])<-beta3[1]+beta3[2]*x31[i]+beta3[3]*x32[i]+beta3[4]*x33[i]+beta3[5]*x34[i]+
+		beta3[6]*x35[i]+beta3[7]*x36[i]+beta3[8]*x37[i]+beta3[9]*x38[i]+
+		beta3[10]*x39[i]+beta3[11]*x310[i]+beta3[12]*x311[i]+
+		u[spt3[i]]+gamA3[yr3[i]]+gamB3[evnt3[i]]
+#logistic distn surv and density
+	s3[i]<-1/(1+exp(temp3[i]))
+	f3[i]<-exp(temp3[i])*pow(s3[i],2)
+#log like
+	L3[i]<-indic3[i]*log(f3[i]/(sigma3*(timeF3[i]+0.01)))+(1-indic3[i])*log(s3[i])
+#Poisson zeros trick
+	zeros3[i]<-0
+	new3[i]<- -L3[i]
+	zeros3[i]~dpois(new3[i])
+}#close i loop  for prca
+#model params for all
+for (j in 1:16){beta1[j]~dnorm(0,0.001)}#brca
+for (j in 1:14){beta2[j]~dnorm(0,0.001)}#crca
+for (j in 1:12){beta3[j]~dnorm(0,0.001)}#prca
+tauu<-pow(sdu,-2)
+sdu~dunif(0,10)
+sigma1~dunif(0.01,10)
+sigma2~dunif(0.01,10)
+sigma3~dunif(0.01,10)
+for (j in 1:64){u[j]~dnorm(0,tauu)}#close j loop
+
+gamA1[1]<-1
+taugamA1<-pow(sdgamA1,-2)
+sdgamA1~dunif(0,10)
+gamA2[1]<-1
+taugamA2<-pow(sdgamA2,-2)
+sdgamA2~dunif(0,10)
+gamA3[1]<-1
+taugamA3<-pow(sdgamA3,-2)
+sdgamA3~dunif(0,10)
+for (k in 2:14){
+	gamA1[k]~dnorm(gamA1[k-1],taugamA1)
+	gamA2[k]~dnorm(gamA2[k-1],taugamA2)
+	gamA3[k]~dnorm(gamA3[k-1],taugamA3)
+}
+
+gamB1[1]<-0
+gamB1[2]~dnorm(0,taugamB1)#share gamB1 with crca
+taugamB1<-pow(sdgamB1,-2)
+sdgamB1~dunif(0,10)
+gamB3[1]<-0
+gamB3[2]~dnorm(0,taugamB3)
+taugamB3<-pow(sdgamB3,-2)
+sdgamB3~dunif(0,10)
+
+#Change points
+cp1~dunif(a,b)#share cp1 with crca
+for (i in 1:33551){evnt1[i]<-step(tick1[i]-cp1)+1}
+for (i in 1:30892){evnt2[i]<-step(tick2[i]-cp1)+1}#tick and event are specific to the crca data
+cp3~dunif(a,b)
+for (i in 1:46527){evnt3[i]<-step(tick3[i]-cp3)+1}
+
+
+#deviances
+D1<-(-2)*sum(L1[])
+D2<-(-2)*sum(L2[])
+D3<-(-2)*sum(L3[])
+}#close model loop
