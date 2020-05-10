@@ -1,2 +1,3 @@
-# sptl_temp_cancer
-Spatial and temporal analysis on cancer survival times.
+# Spatial and temporal analysis on cancer survival times
+This repo includes the code work for my graduate capstone project that explores the benefits of shared spatial and temporal random effects in an accelerated failure time model of various cancers. The cancers of interest are breast, lung and bronchus, colorectal, and prostate cancer. The data is from the Louisiana Surveillance Epidemiology and End Result (SEER) during the time period January 2000 to December 2013. 
+The 'code' folder includes graphic results of the research as well as a subfolder titled 'CodeForJC'. This folder contains the R files used the the study as well as the text files needed for the applcication WinBUGS14. 
